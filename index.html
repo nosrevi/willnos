@@ -1,0 +1,637 @@
+
+<!DOCTYPE html>
+<html lang="en"> 
+    <head>
+        <meta charset="utf-8">
+        
+        <meta name="description" content="Wave simulation using the HTML5 canvas element. Water bubbles represent recent tweets about water, click them to open." />
+        <meta name="keywords" content="hakim, elhattab, hakim el hattab, hakim elhattab, interactive, developer, flash, html5, canvas, web, experiments" />
+        <meta name="author" content="Hakim El Hattab" />
+        
+        <meta http-equiv="X-UA-Compatible" content="chrome=1">
+                
+        <title>Willnos - Bin Wu's Playground</title>
+        
+        <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+        
+        <link href="styles.css" rel="stylesheet" media="screen" />
+        <style type="text/css">
+
+            body {
+             /*   background-color:grey;*/
+            }   
+
+            body,div {
+                margin:0;
+                padding:0;
+                border:none;
+                font-family: "American Typewriter";
+            }   
+
+            /* Set translateZ to trigger HW acc for CSS3 transforms */
+            #container {
+                background-image: url("images/shattered.png");
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                -webkit-transform: translate3d(0,0,1px);
+                -o-transform: translate3d(0,0,1px);
+                -moz-transform: translate3d(0,0,1px);
+                -ms-transform: translate3d(0,0,1px);
+                transform: translate3d(0,0,1px);
+                -webkit-perspective: 1000; 
+                -webkit-backface-visibility: hidden;
+            }   
+
+            #container {
+                -webkit-transition-property: -webkit-transform;
+                -webkit-transition-duration: 0.1;
+            }   
+
+            * Styles for the experiment GUI */
+            .panel {
+                font-size:16px;
+                position: fixed;
+                top:0;
+                right:0;
+                width:360px;
+                z-index:2;
+                background-color: #555;
+                padding: 10px;
+            }
+
+            .click {
+                cursor: pointer;
+            }
+
+            @media screen and (max-width: 600px) {
+                .panel {
+                    width:250px;
+                    font-size:10px;
+                }
+            }
+
+            /* Styles for illustrating the example */
+            a {
+                color:#FFF;
+                text-decoration:underline;
+            }
+
+            div {
+            /*    position: absolute; */
+                background-color: rgba(0,0,0,0);
+                /* border: 1px solid #FFF; */
+            }
+
+            #headline {
+                margin-top: 20px;
+                margin-left: 30px;
+                height: 100px;
+            }
+
+            #headline div{
+                background-size: contain;
+                background-repeat: no-repeat;
+                opacity: 0.9;
+                float:left;
+                margin:20px 5px 0 0;
+/*                transform: rotate(20deg);
+                -ms-transform: rotate(20deg);
+                -webkit-transform: rotate(20deg);
+ */           }
+
+            #footer {
+                background-color: orange;
+                bottom: 0;
+                height: 160px;
+                left: 0;
+                width: 160px;
+                position: absolute;
+                -moz-border-top-right-radius: 160px;
+                border-top-right-radius: 160px;
+            }
+
+            div.w{
+                height:100px;
+                width: 100px;
+                margin-top:0 !important;
+                -moz-box-shadow: 5px 5px 7px rgba(33,33,33,1)  ; /* Safari+Chrome */  
+                -webkit-box-shadow: 5px 5px 7px rgba(33,33,33,.7)  ; /* Opera */  
+                box-shadow: 5px 5px 7px rgba(33,33,33,.7)  ;
+
+            }
+            
+            div.i{
+                height:80px;
+                width: 37px;
+            }
+
+            div.l{
+                height:80px;
+                width: 67.7px;
+            }
+
+            div.n{
+                height:80px;
+                width: 73.6px;
+            }
+
+            div.o{
+                height:80px;
+                width: 80px;
+            }
+
+            div.o:hover{
+                cursor: hand;
+                cursor: pointer;
+            }
+
+            div.s{
+                height:80px;
+                width: 68px;
+            }
+
+            div.arrow{
+                width:220px;
+                height: 84px;
+                margin-left: 410px;
+                float: left;
+            }
+
+            div.banner{
+                height: 58px;
+                margin: 42px 0 0 50px !important;
+                width: 400px;
+                float: left;
+            }
+
+            #profile_img {
+                width: 205px;
+                height: 250px;
+                border-radius: 5px;
+            }
+            #f1_container {
+                position: relative;
+                float: right;
+                width: 205px;
+                height: 250px;
+                z-index: 1;
+            }
+            #f1_card {
+                width: 100%;
+                height: 100%;
+                transform-style: preserve-3d;
+                transition: all 0.4s linear;
+                box-shadow: 5px 5px 5px #aaa;
+                border-radius: 5px;
+            }
+            .flip{
+                transform: rotateY(180deg);
+                box-shadow: -5px 5px 5px #aaa !important;
+            }
+            .flip .back{
+                display: none;
+            }
+            .face {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                border-radius: 5px;
+            }
+            .face.back {
+                transform: rotateY(180deg);
+                box-sizing: border-box;
+                color: white;
+                text-align: center;
+                background-color: orange;
+                backface-visibility: hidden;
+            }
+
+.plate { width: 281px; height: 281px; border-radius:50%; padding:6px; background:rgba(0,0,0,0.2);  overflow: hidden; position: absolute; bottom:0; left:0;}
+.link { width: 100%; height: 100%; position: absolute; }
+
+.sector { width: 281px; height: 281px; overflow: hidden; background: url(images/bg.png); position: absolute; }
+.sector li { position: absolute; width: 50%; height: 50%; overflow: hidden; }
+.sector a { position: absolute; width: 100%; height: 100%; border-top-left-radius: 100%; line-height: 999px; -webkit-transform: rotate(30deg); -moz-transform: rotate(30deg); margin: -25px 0 0 45px; background: #ff4400; display:none; }
+.sector li.r2 { -webkit-transform: rotate(60deg); -moz-transform: rotate(60deg); margin: -26px 0 0 96px; }
+.sector li.r3 { -webkit-transform: rotate(120deg); -moz-transform: rotate(120deg); margin: 44px 0 0 166px; }
+.sector li.r4 { -webkit-transform: rotate(180deg); -moz-transform: rotate(180deg); margin: 140px 0 0 140px; }
+.sector li.r5 { -webkit-transform: rotate(240deg); -moz-transform: rotate(240deg); margin: 166px 0 0 44px; }
+.sector li.r6 { -webkit-transform: rotate(300deg); -moz-transform: rotate(300deg); margin: 96px 0 0 -26px; }
+
+.icon { position: absolute; }
+.icon li { position: absolute; width: 44px; height: 37px; background: #ccc; overflow: hidden; line-height: 999px; background: url(images/icon.png); display: none; }
+.icon li.r1 { margin: 37px 0 0 71px; background-position: 0 -37px; }
+.icon li.r2 { margin: 37px 0 0 168px; background-position: -220px -37px;}
+.icon li.r3 { margin: 122px 0 0 214px; background-position: -176px -37px;}
+.icon li.r4 { margin: 204px 0 0 165px; background-position: -132px -37px; }
+.icon li.r5 { margin: 208px 0 0 76px; background-position: -88px -37px; }
+.icon li.r6 { margin: 120px 0 0 21px; background-position: -44px -37px;}
+
+.home { width:138px; height:138px; overflow:hidden; line-height:999px; position:absolute; border-radius:50%; background:url(images/home.png); left:50%; top:50%; margin:-69px 0 0 -69px;}
+.home.over a { display:block; background:#ff4400; width:125px; height:125px; border-radius:50%; margin:7px;}
+.home.over a span { display:block; width:53px; height:46px; background:url(images/icon.png) right top; position:relative; margin:auto; top:40px;}
+
+.menu { position:absolute; bottom:25px; left:25px;}
+.menu a { display:block; width:60px; height:60px; border-radius:50%; background:#ff4400; border:#fff solid 5px; box-shadow: 0 0 0 3px rgba(200,200,200,0.3);}
+.menu a span { background:url(images/icon.png) no-repeat -264px -46px; display:block; width:41px; height:31px; overflow:hidden; line-height:999px; margin:14px 0 0 9px;}
+
+/*菜单动画*/
+.plate {
+    -webkit-transition:all 0.3s;
+    transition:all 0.3s;
+    -webkit-transform:translate(-100px,100px) scale(0,0) rotate(0);
+    transform:translate(-100px,100px) scale(0,0) rotate(0);
+}
+.plate.open {
+    -webkit-transform:translate(28px,-100px) scale(1,1) rotate(360deg);
+    transform:translate(28px,-100px) scale(1,1) rotate(360deg);
+}
+.menu a {
+    -webkit-transition:all 0.3s;
+    transition:all 0.3s;
+}
+.menu a.open { background:rgba(200,200,200,0.5);}
+
+
+        </style>
+
+        
+    </head>
+    <!--
+<body onload="setTimeout(init,2000);">
+<body>
+-->
+<body>
+<canvas id="canvas"><p class="noCanvas">You need a <a href="http://www.google.com/chrome">modern browser</a> to view this.</p></canvas>
+<div id="container">
+    <div id="headline">
+        <div class="w rigid" style="background-image: url(images/W.png);"></div>
+        <div class="i drop" style="background-image: url(images/I.png);"></div>
+        <div class="l drop" style="background-image: url(images/L.png);"></div>
+        <div class="l drop" style="background-image: url(images/L.png);"></div>
+        <div class="n drop" style="background-image: url(images/N.png);"></div>
+        <div class="o drop" style="background-image: url(images/Orange.png);" onclick="setTimeout(init,1000);"></div>
+        <div class="s drop" style="background-image: url(images/S.png);"></div>
+        <div class="banner" style="background-image: url(images/banner.png);"></div>
+    </div>
+        <div class="arrow" style="background-image: url(images/arrow.png);"></div>
+
+    <div id="f1_container" class="drop">
+        <div id="f1_card" class="click">
+            <div class="front face">
+                <img id="profile_img" src="images/Me.png">
+            </div>
+            <div class="back face">
+                <h2>Hola Amigo!</h2>
+            </div>
+        </div>
+    </div>
+
+    <div id="ww" class="drop" style="margin-top:100px; position:relative; background-color:orange; width:40%; height: 200px;">
+       My name is Bin Wu, a developer currently lives in Dallas, TX.<br/> 
+       Willnos is just one of my game ids :)<br/> 
+       Web is FUN and I web for FUN!<br/>
+       enjoy<br/>
+    </div>
+
+        <div class="plate">
+      <ul class="sector">
+        <li class="r1"><a href="#">我的淘宝</a></li>
+        <li class="r2"><a href="#">购物车</a></li>
+        <li class="r3"><a href="#">搜索</a></li>
+        <li class="r4"><a href="#">更多</a></li>
+        <li class="r5"><a href="#">物流</a></li>
+        <li class="r6"><a href="#">旺旺</a></li>
+      </ul>
+      <ul class="icon">
+        <li class="r1">我的淘宝</li>
+        <li class="r2">购物车</li>
+        <li class="r3">搜索</li>
+        <li class="r4">更多</li>
+        <li class="r5">物流</li>
+        <li class="r6">旺旺</li>
+      </ul>
+      <div class="home"><a href="#"><span>主页</span></a></div>
+      <div class="link"><img src="images/link.png" width="100%" height="100%" usemap="#Map">
+        <map name="Map" id="map">
+          <area shape="poly" coords="140,67,139,1,72,21,25,68,85,107" href="#a">
+          <area shape="poly" coords="196,105,256,74,213,23,141,5,142,73" href="#b">
+          <area shape="poly" coords="196,106,257,75,277,132,260,208,198,174" href="#c">
+          <area shape="poly" coords="195,173,258,211,214,259,144,279,141,205" href="#d">
+          <area shape="poly" coords="141,203,136,279,68,256,21,208,86,174" href="#e">
+          <area shape="poly" coords="84,169,18,206,2,131,22,72,83,108" href="#f">
+          <area shape="circle" coords="141,140,63" href="#home">
+        </map>
+      </div>
+    </div>
+    <div class="menu">
+      <a href="#menu"><span>淘宝</span></a>
+    </div>
+
+
+</div>
+
+        <script>
+
+        $("#f1_card").click(function () {
+            $(this).toggleClass('flip');
+        });
+        </script>
+
+<script>
+$("#map area[shape='poly']").hover(function(){
+    i = $(this).index();
+    $(".sector a").eq(i).show();
+    $(".icon li").eq(i).show();
+},function(){
+    $(".sector a").eq(i).hide();
+    $(".icon li").eq(i).hide();
+});
+$("#map area[shape='circle']").hover(function(){
+    $(".home").addClass("over");
+},function(){
+    $(".home").removeClass("over");
+});
+$(".menu a").click(function(){
+    if($(this).attr("class") == "open"){
+        $(this).removeClass("open");
+        $(this).addClass("close");
+        $(".plate").removeClass("open");
+        $(".plate").addClass("close");
+    }else{
+        $(this).removeClass("close");
+        $(this).addClass("open");
+        $(".plate").removeClass("close");
+        $(".plate").addClass("open");
+    }
+});
+</script>
+
+<!--<script src="wave.js"></script>-->
+<!--
+        <div class="panel">
+            <p>I also created <a href="MouseAndTouch.js">MouseAndTouch.js</a> for simplifying mixing touch and mouse move handling</p>
+            <button id="resetButton">Reset</button>
+            <button id="removeText">Remove this text</button>
+            <input type="checkbox" id="debugDraw">Debug drawing</input>
+        </div>
+-->
+    </body>
+
+  <script type="text/javascript" src="Box2dWeb-2.1.a.3.js"></script>
+   <script type="text/javascript" src="RequestAnimationFrame.js"></script>
+   <script type="text/javascript" src="MouseAndTouch.js"></script>
+
+   <script type="text/javascript">
+        // Keep a reference to the Box2D World
+        var world;
+
+        // The scale between Box2D units and pixels
+        var SCALE = 30;
+
+        // Multiply to convert degrees to radians.
+        var D2R = Math.PI / 180;
+
+        // Multiply to convert radians to degrees.
+        var R2D = 180 / Math.PI;
+
+        // 360 degrees in radians.
+        var PI2 = Math.PI * 2;
+        var interval;
+
+        //Cache the canvas DOM reference
+        var canvas;
+
+        //Are we debug drawing
+        var debug = false;
+
+        // Shorthand "imports"
+        var b2Vec2 = Box2D.Common.Math.b2Vec2,
+            b2BodyDef = Box2D.Dynamics.b2BodyDef,
+            b2AABB = Box2D.Collision.b2AABB,
+            b2Body = Box2D.Dynamics.b2Body,
+            b2FixtureDef = Box2D.Dynamics.b2FixtureDef,
+            b2Fixture = Box2D.Dynamics.b2Fixture,
+            b2World = Box2D.Dynamics.b2World,
+            b2MassData = Box2D.Collision.Shapes.b2MassData,
+            b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape,
+            b2CircleShape = Box2D.Collision.Shapes.b2CircleShape,
+            b2DebugDraw = Box2D.Dynamics.b2DebugDraw,
+            b2MouseJointDef =  Box2D.Dynamics.Joints.b2MouseJointDef,
+            b2EdgeShape = Box2D.Collision.Shapes.b2EdgeShape,
+            b2WeldJointDef =  Box2D.Dynamics.Joints.b2WeldJointDef;
+
+        function init() {
+
+            //Create the Box2D World with horisontal and vertical gravity (10 is close enough to 9.8)
+            world = new b2World(
+            new b2Vec2(0, 10) //gravity
+            , true //allow sleep
+            );
+
+            //setup debug draw
+            var debugDraw = new b2DebugDraw();
+            canvas = $("#canvas");
+            debugDraw.SetSprite(canvas[0].getContext("2d"));
+            debugDraw.SetDrawScale(SCALE);
+            debugDraw.SetFillAlpha(0.3);
+            debugDraw.SetLineThickness(1.0);
+            debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit);
+            world.SetDebugDraw(debugDraw);
+
+            //Create DOB OBjects
+            createDOMObjects();
+
+            //Make sure that the screen canvas for debug drawing matches the window size
+            resizeHandler();
+            $(window).bind('resize', resizeHandler);
+
+            //Simple solution; reload to reset
+            $("#resetButton").click(function() {
+                document.location.reload();
+            });
+
+            $("#debugDraw").click(function () {
+                if ($("#debugDraw:checked").val()) {
+                    debug = true;
+                } else {
+                    debug = false;
+                    canvas.width = canvas.width;
+                }
+                $("article").animate({opacity:debug ? 0.2 : 1},1000);
+            })
+
+            $("#removeText").click(function() {
+                $(".panel p").hide()
+            });
+
+            //Create the ground
+            var w = $(window).width(); 
+            var h = $(window).height();
+
+            createBox(0, h , w, 5, true);
+            createBox(0,0, w, 5, true);
+            createBox(0,0,5,h, true);
+            createBox(w,0,5,h, true);
+
+            //Do one animation interation and start animating
+            interval = setInterval(update,1000/60);
+            update();
+        }
+
+        function createDOMObjects() {
+            //iterate all div elements and create them in the Box2D system
+            $("#container div").each(function (a,b) {
+                var domObj = $(b);
+                var domPos = $(b).position();
+                var width = domObj.width() / 2 ;
+                var height = domObj.height() / 2
+                var x = (domPos.left) + width + parseInt(domObj.css('marginLeft').replace('px',''));
+                var y = (domPos.top) + height + parseInt(domObj.css('marginTop').replace('px',''));
+                if (domObj.hasClass('drop')) {
+                    if (domObj.hasClass('l')) {
+                        var bodies = createL(x,y,width,height);
+                        for (var i=0; i<bodies.length; i++) {
+                            bodies[i].m_userData = {x:x, y:y, domObj:domObj, width:width, height:height}; // y = y + top margin, couldn't figure out an elegant way 
+                        }
+                    } else if (domObj.hasClass('o')){
+                        var body = createCircle(x,y,width);
+                        body.m_userData = {x:x, y:y, domObj:domObj, width:width, height:height}; // y = y + top margin, couldn't figure out an elegant way 
+                    } else {
+                        var body = createBox(x,y,width,height);
+                        body.m_userData = {x:x, y:y, domObj:domObj, width:width, height:height}; // y = y + top margin, couldn't figure out an elegant way 
+                    }
+                } else if (domObj.hasClass('rigid')) {
+                    var body = createBox(x,y,width,height,true);
+                    body.m_userData = {x:x, y:y, domObj:domObj, width:width, height:height};
+                }
+                
+                //Reset DOM object position for use with CSS3 positioning
+                //domObj.css({'left':'0px', 'top':'0px'});
+            });
+        }
+
+        function createBox(x,y,width,height, static) {
+            var bodyDef = new b2BodyDef;
+            bodyDef.type = static ? b2Body.b2_staticBody : b2Body.b2_dynamicBody;
+            bodyDef.position.x = x / SCALE;
+            bodyDef.position.y = y / SCALE
+            var fixDef = new b2FixtureDef;
+            fixDef.density = 2.5;
+            fixDef.friction = 0.3;
+            fixDef.restitution = 0.4;
+
+            fixDef.shape = new b2PolygonShape;
+            fixDef.shape.SetAsBox(width / SCALE, height / SCALE);
+            return world.CreateBody(bodyDef).CreateFixture(fixDef);
+        }
+
+        function createL(x,y,width,height) {
+            var bodyDef = new b2BodyDef;
+            bodyDef.type = b2Body.b2_dynamicBody;
+            bodyDef.position.x = x / SCALE;
+            bodyDef.position.y = y / SCALE
+            var body = world.CreateBody(bodyDef);
+
+            var fixDef = new b2FixtureDef;
+            fixDef.density = 2.5;
+            fixDef.friction = 0.3;
+            fixDef.restitution = 0.4;
+
+            fixDef.shape = new b2PolygonShape;
+            fixDef.shape.SetAsArray([
+                new b2Vec2((-width)/SCALE , (-height)/SCALE),
+                new b2Vec2((37-width)/SCALE , (-height)/SCALE),
+                new b2Vec2((37-width)/SCALE , height/SCALE),
+                new b2Vec2((-width)/SCALE , height/SCALE)
+            ]);
+
+            var fixDef2 = new b2FixtureDef;
+            fixDef2.density = 2.5;
+            fixDef2.friction = 0.3;
+            fixDef2.restitution = 0.4;
+
+            fixDef2.shape = new b2PolygonShape;
+            fixDef2.shape.SetAsArray([
+                new b2Vec2((37-width)/SCALE , (height)/SCALE),
+                new b2Vec2((37-width)/SCALE , (height-30.7)/SCALE),
+                new b2Vec2(width/SCALE , (height-30.7)/SCALE),
+                new b2Vec2(width/SCALE , (height)/SCALE)
+            ]);
+
+            var fixtures = [body.CreateFixture(fixDef), body.CreateFixture(fixDef2)];
+            return fixtures; 
+        }
+
+        function createCircle(x,y,radius, static) {
+            var bodyDef = new b2BodyDef;
+            bodyDef.type = static ? b2Body.b2_staticBody : b2Body.b2_dynamicBody;
+            bodyDef.position.x = x / SCALE;
+            bodyDef.position.y = y / SCALE
+            var fixDef = new b2FixtureDef;
+            fixDef.density = 0.1;
+            fixDef.friction = 0.3;
+            fixDef.restitution = 0.1;
+
+            fixDef.shape = new b2CircleShape;
+            fixDef.shape.SetRadius(radius/ SCALE);
+            return world.CreateBody(bodyDef).CreateFixture(fixDef);
+        }
+
+        //Animate DOM objects
+        function drawDOMObjects() {
+            var i = 0;
+            for (var b = world.m_bodyList; b; b = b.m_next) {
+                 for (var f = b.m_fixtureList; f; f = f.m_next) {
+                        if (f.m_userData) {
+                            //Retrieve positions and rotations from the Box2d world
+                            var x = Math.floor((f.m_body.m_xf.position.x * SCALE) - f.m_userData.x);
+                            var y = Math.floor((f.m_body.m_xf.position.y * SCALE) - f.m_userData.y);
+                            //CSS3 transform does not like negative values or infitate decimals
+                            var r = Math.round(((f.m_body.m_sweep.a + PI2) % PI2) * R2D * 100) / 100;
+
+                            var css = {'-webkit-transform':'translate(' + x + 'px,' + y + 'px) rotate(' + r  + 'deg)', '-moz-transform':'translate(' + x + 'px,' + y + 'px) rotate(' + r  + 'deg)', '-ms-transform':'translate(' + x + 'px,' + y + 'px) rotate(' + r  + 'deg)'  , '-o-transform':'translate(' + x + 'px,' + y + 'px) rotate(' + r  + 'deg)', 'transform':'translate(' + x + 'px,' + y + 'px) rotate(' + r  + 'deg)'};
+
+                            f.m_userData.domObj.css(css);
+                        }
+                 }
+              }
+        };
+
+        //Method for animating
+        function update() {
+            //I tried to use this cross browser animation snippet from Paul Irish, but it killed the performance/timing.
+            //Ill have to look more at it later, when I have the time.
+            //requestAnimFrame(update);
+
+            updateMouseDrag();
+
+            world.Step(
+            1 / 60 //frame-rate
+            , 10 //velocity iterations
+            , 10 //position iterations
+            );
+
+            //If you experience strange results, enable the debug drawing
+            if (debug) {
+                world.DrawDebugData();
+            }
+
+            drawDOMObjects();
+
+            world.ClearForces();
+        }
+   
+        //Keep the canvas size correct for debug drawing
+        function resizeHandler() {
+            canvas.attr('width', $(window).width());
+            canvas.attr('height', $(window).height());
+        }
+   </script>
+   <script type="text/javascript" src="DebugMouseDrag.js"></script>
+
+</html>
